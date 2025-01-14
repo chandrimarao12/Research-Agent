@@ -58,8 +58,8 @@ def summarize():
     data = request.get_json()
     query = data.get("query")
     max_links = data.get("max_links", 5)
-    GOOGLE_API_KEY = 'your- api'
-    CX = 'cx'
+    GOOGLE_API_KEY = os.getenv('API_KEY')
+    CX = os.getenv('CX')
     try:
         summary = summarize_google_links(query, GOOGLE_API_KEY, CX, max_links)
         return jsonify({"query": query, "summary": summary})
