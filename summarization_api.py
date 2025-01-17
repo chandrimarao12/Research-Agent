@@ -35,6 +35,7 @@ def extract_text_from_url(url):
             soup = BeautifulSoup(response.content, "html.parser")
             paragraphs = soup.find_all("p")
             text = " ".join([para.get_text() for para in paragraphs])
+            
             return text
         else:
             return ""
@@ -55,32 +56,22 @@ def summarize_with_openai(query,text, api_key, model="gpt-3.5-turbo"):
     except Exception as e:
         return f"Summarization failed: {e}"
 
-# def summarize_google_links(query, google_api_key, cx, openai_api_key, max_links=5):
-#     try:
-#         search_results = fetch_google_results(query, google_api_key, cx)
-#         combined_text = ""
-#         for idx, item in enumerate(search_results[:max_links], start=1):
-#             link = item.get("link")
-#             content = extract_text_from_url(link)
-            
-#             combined_text += content + "\n\n"
+        
 
-#         summary = summarize_with_openai(query,combined_text, openai_api_key)
-#         return summary
-#     except Exception as e:
-#         return f"An error occurred: {e}"
 def summarize_google_links(query, google_api_key, cx, openai_api_key, max_links=5):
     try:
         search_results = fetch_google_results(query, google_api_key, cx)
         results_with_urls = []
         combined_text = ""
-
+        
         for idx, item in enumerate(search_results[:max_links], start=1):
             link = item.get("link")
             content = extract_text_from_url(link)
             results_with_urls.append({"url": link, "text": content})
             combined_text += content + "\n\n"
-
+        print("len: ",len(combined_text))
+        if len(combined_text)>16370:
+            combined_text=combined_text[:16385]
         summary = summarize_with_openai(query, combined_text, openai_api_key)
         return results_with_urls, summary
     except Exception as e:
@@ -106,12 +97,7 @@ def summarize():
         return jsonify({"query": query, "summary": summary, "results": results_with_urls})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    # try:
-    #     summary = summarize_google_links(query, GOOGLE_API_KEY, CX, OPENAI_API_KEY, max_links)
-    #     return jsonify({"query": query, "summary": summary})
-    # except Exception as e:
-    #     return jsonify({"eSrror": str(e)}), 500
-
+   
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
